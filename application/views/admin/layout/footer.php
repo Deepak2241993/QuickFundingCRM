@@ -93,7 +93,8 @@
   <!--app-->
   <script src="<?=base_url();?>assets/js/app.js"></script>
   <script src="<?=base_url();?>assets/js/index.js"></script>
-
+<!-- include ckeditor css/js-->
+  <script src="<?= base_url('assets/ckeditor/ckeditor.js'); ?>"></script>
 <script type="text/javascript">
 function CheckColors(val){
     
@@ -110,7 +111,9 @@ function CheckColors(val){
 }
 
 </script>
-
+<script>
+    CKEDITOR.replace('editor1'); // 'editor1' is the id of the textarea
+</script>
   <script>
 
      

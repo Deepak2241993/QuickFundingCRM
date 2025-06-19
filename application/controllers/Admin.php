@@ -95,17 +95,65 @@ class Admin extends CI_Controller
 
 
 	public function allLead()
+{
+    if (!$this->session->userdata('login')) {
+        redirect(base_url('Admin'));
+    }
+
+    $this->load->library('pagination');
+
+    // === Pagination config ===
+    $config['base_url'] = base_url('Admin/allLead');
+    $config['total_rows'] = $this->Customer->get_total_leads();
+    $config['per_page'] = 10;
+    $config['uri_segment'] = 3;
+    $config['use_page_numbers'] = true;
+
+    // === Bootstrap 5 Styling ===
+    $config['full_tag_open'] = '<ul class="pagination justify-content-center">';
+    $config['full_tag_close'] = '</ul>';
+    $config['first_tag_open'] = '<li class="page-item"><span class="page-link">';
+    $config['first_tag_close'] = '</span></li>';
+    $config['last_tag_open'] = '<li class="page-item"><span class="page-link">';
+    $config['last_tag_close'] = '</span></li>';
+    $config['next_tag_open'] = '<li class="page-item"><span class="page-link">';
+    $config['next_tag_close'] = '</span></li>';
+    $config['prev_tag_open'] = '<li class="page-item"><span class="page-link">';
+    $config['prev_tag_close'] = '</span></li>';
+    $config['cur_tag_open'] = '<li class="page-item active"><span class="page-link">';
+    $config['cur_tag_close'] = '</span></li>';
+    $config['num_tag_open'] = '<li class="page-item"><span class="page-link">';
+    $config['num_tag_close'] = '</span></li>';
+
+    $this->pagination->initialize($config);
+
+if ($this->uri->segment(3)) {
+    $page = $this->uri->segment(3);
+} else {
+    $page = 1;
+}
+
+// Fix warning by casting to string before using ctype_digit
+	if($page>1)
 	{
-		if ($this->session->userdata('login')) {
-			$data['leads'] = $this->Customer->lead_list();
-			$this->load->view('admin/layout/header');
-			$this->load->view('admin/layout/sidebar');
-			$this->load->view('admin/lead_generation/lead_list', $data);
-			$this->load->view('admin/layout/footer');
-		} else {
-			redirect(base_url() . 'Admin');
-		}
+		$page = (ctype_digit((string)$page) && (int)$page > 0) ? (int)$page : 1;
+		
 	}
+
+    $start = ($page - 1) * $config['per_page'];
+    $data['leads'] = $this->Customer->get_paginated_leads($config['per_page'], $start);
+    $data['pagination'] = $this->pagination->create_links();
+    $data['current_page'] = $page;
+    $data['per_page'] = $config['per_page'];
+
+    $this->load->view('admin/layout/header');
+    $this->load->view('admin/layout/sidebar');
+    $this->load->view('admin/lead_generation/lead_list', $data);
+    $this->load->view('admin/layout/footer');
+}
+
+
+
 
 
 	public function managerlist()
@@ -128,6 +176,18 @@ class Admin extends CI_Controller
 			$this->load->view('admin/layout/header');
 			$this->load->view('admin/layout/sidebar');
 			$this->load->view('admin/lead_generation/leadgeneration');
+			$this->load->view('admin/layout/footer');
+		} else {
+			redirect(base_url() . 'Admin');
+		}
+	}
+
+	public function addnotice()
+	{
+		if ($this->session->userdata('login')) {
+			$this->load->view('admin/layout/header');
+			$this->load->view('admin/layout/sidebar');
+			$this->load->view('admin/notice/create_notice');
 			$this->load->view('admin/layout/footer');
 		} else {
 			redirect(base_url() . 'Admin');
@@ -228,7 +288,13 @@ class Admin extends CI_Controller
 
 	public function LeadEdit($id)
 	{
+		$page = $this->input->get('page'); // Better than using $_GET directly
+
+		if ($page !== null && ctype_digit((string)$page)) {
+			$this->session->set_userdata('page', (int)$page);
+		}
 		if ($this->session->userdata('login')) {
+
 			$data['leads'] = $this->Customer->get_lead_by_id($id);
 			$this->load->view('admin/layout/header');
 			$this->load->view('admin/layout/sidebar');
@@ -274,19 +340,20 @@ class Admin extends CI_Controller
 					'credit_card' => $this->input->post('credit_card'),
 					'call_back_time' => $this->input->post('call_back_time'),
 					'comment' => $this->input->post('comment'),
-					'status' => $this->input->post('status'),
+					// 'status' => $this->input->post('status'),
 					// 			'agent_id'=>$this->input->post('agent_id'),
 					// 			'manager_id'=>$this->input->post('manager_id'),
 					'reject_resoan' => $this->input->post('reject_resoan'),
 					'created_at' => $this->input->post('reject_resoan')
 				);
+				$page = $this->session->userdata('page');
 				$data = $this->Customer->updatelead($lead, $id);
 				if ($data) {
 					$this->session->set_flashdata('success', 'Leads Updated successfully');
-					redirect(base_url() . 'Admin/allLead');
+					redirect(base_url() . 'Admin/allLead/'.$page);
 				} else {
 					$this->session->set_flashdata('error', 'Not Updated');
-					redirect(base_url() . 'Admin/LeadGeneration');
+					redirect(base_url() . 'Admin/LeadGeneration/1');
 				}
 			} else {
 				$this->session->set_flashdata('error', 'Fill necessary field *');
@@ -310,6 +377,29 @@ class Admin extends CI_Controller
 			redirect(base_url() . 'Admin');
 		}
 	}
+
+	public function noticedelete($id)
+{
+    if ($this->session->userdata('login')) {
+        if (isset($_SESSION['type']) && ($_SESSION['type'] == 'SuperAdmin')) {
+            $data = $this->Customer->delete_notice($id);
+            if ($data) {
+                $this->session->set_flashdata('success', 'Notice deleted successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to delete Notice');
+            }
+            redirect(base_url() . 'Admin/noticelist');
+        } else {
+            // User is logged in but doesn't have permission
+            $this->session->set_flashdata('error', 'Unauthorized action');
+            redirect(base_url() . 'Admin/noticelist');
+        }
+    } else {
+        // Not logged in
+        redirect(base_url() . 'Admin');
+    }
+}
+
 
 
 	public function customerList()
@@ -1008,6 +1098,22 @@ class Admin extends CI_Controller
 			redirect(base_url() . 'Admin');
 		}
 	}
+
+	// For Notice List
+		public function noticelist()
+	{
+		if ($this->session->userdata('login')) {
+			$data['notice'] = $this->Customer->get_notice();
+			$this->load->view('admin/layout/header');
+			$this->load->view('admin/layout/sidebar');
+			$this->load->view('admin/notice/notice_list', $data);
+			$this->load->view('admin/layout/footer');
+		} else {
+			redirect(base_url() . 'Admin');
+		}
+	}
+
+	
 	public function saveUser()
 	{
 		if ($this->session->userdata('login')) {
@@ -1018,16 +1124,39 @@ class Admin extends CI_Controller
 				'type' => $this->input->post('type'),
 				'manager_id' => $this->input->post('manager_id'),
 				'phone' => $this->input->post('phone'),
-				'status' => $this->input->post('status'),
+				'status' => 1,
 			);
 
 			$data = $this->Customer->addUser($agentArray);
 			if ($data) {
-				$this->session->set_flashdata('success', 'User Create successfully');
+				$this->session->set_flashdata('success', 'Notice Create successfully');
 				redirect(base_url() . 'Admin/UserList');
 			} else {
 				$this->session->set_flashdata('error', 'Not created');
 				redirect(base_url() . 'Admin/add_user');
+			}
+		} else {
+			redirect(base_url() . 'Admin');
+		}
+	}
+	// Save Notice
+	public function saveNotice()
+	{
+		if ($this->session->userdata('login')) {
+			$noticedata = array(
+				'regarding' => $this->input->post('regarding'),
+				'notice' => $this->input->post('notice'),
+				'added_by' => $this->input->post('added_by'),
+				'status' => 1,
+			);
+
+			$data = $this->Customer->noticeStore($noticedata);
+			if ($data) {
+				$this->session->set_flashdata('success', 'User Create successfully');
+				redirect(base_url() . 'Admin/noticelist');
+			} else {
+				$this->session->set_flashdata('error', 'Not created');
+				redirect(base_url() . 'Admin/addnotice');
 			}
 		} else {
 			redirect(base_url() . 'Admin');
@@ -1053,6 +1182,20 @@ class Admin extends CI_Controller
 			$this->load->view('admin/layout/header');
 			$this->load->view('admin/layout/sidebar');
 			$this->load->view('admin/edit_user', $data);
+			$this->load->view('admin/layout/footer');
+		} else {
+			redirect(base_url() . 'Admin');
+		}
+	}
+	
+	//  For edit Notice
+		public function editnotice($id)
+	{
+		if ($this->session->userdata('login')) {
+			$data['notice'] = $this->Customer->get_notice_by_id($id);
+			$this->load->view('admin/layout/header');
+			$this->load->view('admin/layout/sidebar');
+			$this->load->view('admin/notice/edit_notice', $data);
 			$this->load->view('admin/layout/footer');
 		} else {
 			redirect(base_url() . 'Admin');
@@ -1103,7 +1246,29 @@ class Admin extends CI_Controller
 			redirect(base_url() . 'Admin');
 		}
 	}
-
+// updtae Notice
+public function updateNotice($id)
+	{
+		if ($this->session->userdata('login')) {
+			$noticedata = array(
+				'regarding' => $this->input->post('regarding'),
+				'notice' => $this->input->post('notice'),
+				'added_by' => $this->input->post('added_by'),
+				'status' => $this->input->post('status'),
+			);
+			$data = $this->Customer->updatenotice($noticedata, $id);
+			if ($data) {
+				$this->session->set_flashdata('success', 'Notice Update successfully');
+				redirect(base_url() . 'Admin/noticelist');
+			} else {
+				$this->session->set_flashdata('error', 'Not Update');
+				redirect(base_url() . 'Admin/editnotice/' . $id);
+			}
+		} else {
+			redirect(base_url() . 'Admin');
+		}
+	}
+	// Delete Image
 	public function deleteImage()
 	{
 		if ($this->session->userdata('login')) {

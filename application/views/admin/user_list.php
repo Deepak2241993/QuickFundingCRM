@@ -53,9 +53,13 @@
 									
 										<!--<td></td>-->
 									<td> <div class="table-actions d-flex align-items-center gap-3 fs-6">
-                               <!--<a href="<?php echo base_url();?>Admin/viewdeatails/<?=$row->id;?>" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Views"><i class="bi bi-eye-fill"></i></a>-->
+                               <!-- <a href="<?php echo base_url();?>Admin/viewdeatails/<?=$row->id;?>" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Views"><i class="bi bi-eye-fill"></i></a> -->
                                <a href="<?php echo base_url();?>Admin/editUser/<?=$row->id;?>" class="text-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+							   <?php
+                                        if ($_SESSION['type'] == 'SuperAdmin') {
+                                        ?>
                                <a href="javascript:void(0)" id="deletec" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Delete" onclick="confirmdelete(<?=$row->id;?>);"><i class="bi bi-trash-fill"></i></a>
+							   <?php } ?>
                              </div></td>
 									</tr>
 									<?php  $i++; } ?>

@@ -63,6 +63,7 @@
 								<div class="col-xl-6 mb-3">
 									<label class="form-label">User Type<span class="text-danger">*</span>:</label>
 									<input type="text" readonly name="type" value="Agent" class="form-control" required>
+									<input type="hidden" name="manager_id" value="<?= $_SESSION['id'] ?>" class="form-control" required>
 								</div>
 							</div>
 
@@ -113,7 +114,7 @@
 								<label class="form-label">Set New Password<span class="text-danger">*</span>:</label>
 								<input type="hidden" name="old_pass" class="form-control" value="<?= $user->password ?>">
 								<input type="password" name="new_pass" class="form-control">
-								<input type="hidden" name="manager_id" value="<?= $_SESSION['id'] ?>" class="form-control" required>
+								
 							</div>
 						</div>
 						<div class="row">

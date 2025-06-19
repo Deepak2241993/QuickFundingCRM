@@ -29,6 +29,7 @@
   <link href="<?=base_url();?>assets/css/semi-dark.css" rel="stylesheet" />
   <link href="<?=base_url();?>assets/css/header-colors.css" rel="stylesheet" />
 
+   
   <title>Quick Funding Adminpanel</title>
 </head>
 

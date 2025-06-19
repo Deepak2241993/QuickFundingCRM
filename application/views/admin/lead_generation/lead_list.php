@@ -70,8 +70,10 @@
 						</tr>
 					</thead>
 					<tbody>
-						<?php $i = 1;
-						foreach ($leads as $row) { ?>
+						<?php
+							$i = isset($current_page) && $current_page > 1 ? (($current_page - 1) * $per_page + 1) : 1;
+							foreach ($leads as $row) {
+							?>
 							<tr>
 								<td> <?= $i ?></td>
 								<td> <?= date('d-m-Y',strtotime($row->created_at)) ?></td>
@@ -125,7 +127,7 @@
 								<td>
 									<div class="table-actions d-flex align-items-center gap-3 fs-6">
 										<!--<a href="<?php echo base_url(); ?>Admin/viewdeatails/<?= $row->id; ?>" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Views"><i class="bi bi-eye-fill"></i></a>-->
-										<a href="<?php echo base_url(); ?>Admin/LeadEdit/<?= $row->id; ?>" class="text-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+										<a href="<?php echo base_url(); ?>Admin/LeadEdit/<?= $row->id; ?>?page=<?=$current_page?>" class="text-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Edit"><i class="bi bi-pencil-fill"></i></a>
 										<?php if ($this->session->userdata('type') == 'SuperAdmin') { ?>
 											<a href="javascript:void(0)" id="deletec" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Delete" onclick="confirmdelete(<?= $row->id; ?>);"><i class="bi bi-trash-fill"></i></a>
 										<?php } ?>
@@ -150,6 +152,10 @@
 					</tfoot>
 				</table>
 			</div>
+			<div class="pagination justify-content-center mt-3">
+				<?= $pagination ?>
+			</div>
+
 		</div>
 	</div>
 </main>
@@ -218,5 +224,18 @@
 
 		}
 	}
+
+setTimeout(() => {
+    $('#example2_paginate').hide();
+}, 1000);
+</script>
+<script>
+    // Get current path
+    const path = window.location.pathname;
+
+    // Check if path ends with /Admin/allLead (no trailing slash)
+    if (path.endsWith('/Admin/allLead')) {
+        window.location.href = path + '/1';
+    }
 </script>
 <!--end page main-->

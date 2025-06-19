@@ -313,6 +313,33 @@ public function ViewManagerTeam($id) {
     $this->db->where('id',$id);
   return  $this->db->delete('leads');
 }
+// For Noice List
+    public function get_notice(){
+        $this->db->select('*');
+        $this->db->from('notice');
+        $this->db->order_by('id','DESC');
+        return $this->db->get()->result();
+    }
+// For Notice Store
+   function noticeStore($data){
+        $this->db->insert('notice',$data);
+        return $this->db->insert_id();
+    }
+  //  For Edit page view of notice
+    public function get_notice_by_id($id){
+         $this->db->where('id',$id);
+      return  $this->db->get('notice')->row();
+    }
+// For notice Edit
+  public function updatenotice($lead,$id){
+        $this->db->where('id',$id);
+        return $this->db->update('notice',$lead);
+  }
+//   For notice Delete
+  public function delete_notice($id){
+    $this->db->where('id',$id);
+  return  $this->db->delete('notice');
+}
 
 public function get_lead_by_id($id){
     $this->db->where('id',$id);
@@ -336,7 +363,33 @@ public function get_lead_by_id($id){
      
     }
     
-    
+
+// Count total leads
+public function get_total_leads()
+{
+    return (int) $this->db->count_all('leads');
+}
+
+// Fetch paginated leads with agent name
+public function get_paginated_leads($limit, $start)
+{
+    $limit = (int) $limit;
+    $start = (int) $start;
+
+    return $this->db
+        ->select('leads.*, admin.name as agent_name')
+        ->from('leads')
+        ->join('admin', 'admin.id = leads.agent_id', 'left')
+        ->order_by('leads.id', 'DESC')
+        ->limit($limit, $start)
+        ->get()
+        ->result();
+}
+
+
+
+
+  
     
     
 }    

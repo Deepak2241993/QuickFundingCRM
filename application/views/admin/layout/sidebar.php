@@ -9,19 +9,8 @@
    </div>
    <!--navigation-->
    <ul class="metismenu" id="menu">
-      <li>
-         <a href="javascript:;" class="has-arrow">
-            <div class="parent-icon"><i class="bi bi-house-fill"></i>
-            </div>
-            <div class="menu-title">Dashboard</div>
-         </a>
-         <ul>
-            <li> <a href="<?= base_url(); ?>Admin/dashboard"><i class="bi bi-circle"></i>Dashboard</a>
+      <li> <a href="<?= base_url(); ?>Admin/dashboard"><i class="bi bi-house-fill"></i>Dashboard</a>
             </li>
-            <!-- <li> <a href="index2.html"><i class="bi bi-circle"></i>Color Dashboard</a>
-               </li> -->
-         </ul>
-      </li>
       <li class="menu-label">Clients</li>
       <li>
          <a class="has-arrow" href="javascript:;">

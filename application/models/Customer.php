@@ -263,6 +263,42 @@ class Customer extends CI_Model {
     }
 
 
+public function manager_list() {
+    if (isset($_SESSION['type']) && $_SESSION['type'] == 'SuperAdmin') {
+        $this->db->select('admin.*');
+        $this->db->from('admin');
+        $this->db->where('type', 'Manager'); // Corrected: '=' is already implied in CI's `where()`
+        $this->db->order_by('admin.id', 'desc');
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    return []; // Always return a default value to avoid null issues
+}
+
+public function ViewManagerTeam($id) {
+    if (isset($_SESSION['type']) && ($_SESSION['type'] == 'SuperAdmin' || $_SESSION['type'] == 'Manager')) {
+        $this->db->select('admin.*, COUNT(leads.id) as lead_count');
+        $this->db->from('admin');
+        $this->db->join('leads', 'leads.agent_id = admin.id AND leads.manager_id = ' . $this->db->escape($id), 'left');
+        $this->db->where('admin.type', 'Agent');
+        $this->db->where('admin.manager_id', $id);
+        $this->db->group_by('admin.id');
+        $this->db->order_by('admin.id', 'desc');
+
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    return [];
+}
+
+
+
+
+ 
+
+
     function leadStore($data){
         $this->db->insert('leads',$data);
         return $this->db->insert_id();

@@ -54,7 +54,7 @@
 
 			<div class="table-responsive">
 				<table id="<?php if ($this->session->userdata('type') != 'Agent') {
-								echo "example2";
+								echo "";
 							} ?>" class="table table-striped table-bordered">
 					<thead>
 						<tr>

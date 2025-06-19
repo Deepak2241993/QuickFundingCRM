@@ -105,7 +105,7 @@ class Admin extends CI_Controller
     // === Pagination config ===
     $config['base_url'] = base_url('Admin/allLead');
     $config['total_rows'] = $this->Customer->get_total_leads();
-    $config['per_page'] = 10;
+    $config['per_page'] = 20;
     $config['uri_segment'] = 3;
     $config['use_page_numbers'] = true;
 

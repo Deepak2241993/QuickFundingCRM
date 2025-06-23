@@ -13,7 +13,7 @@
             </nav>
             </nav>
         </div>
-       
+
     </div>
     <!--end breadcrumb-->
     <hr />
@@ -29,8 +29,8 @@
                             <th>Regarding</th>
                             <th>Notice</th>
                             <th>Issued By</th>
-                            <!--<th>Mobile No</th>-->
                             <th>Status</th>
+                            <th>Updated Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -41,14 +41,24 @@
                                 <td> <?= $i ?></td>
 
                                 <td><?= $row->regarding ?></td>
-                                <td><?= $row->notice ?></td>
+                                <td> <?= implode(' ', array_slice(explode(' ', strip_tags($row->notice)), 0, 10)) . '...'; ?></td>
                                 <td><?= $row->added_by ?></td>
-                                <td><?= $row->status==1? 'Active':'Inactive' ?></td>
+                               <td>
+  <?php if ($row->status == 1): ?>
+    <span class="badge bg-success">Active</span>
+  <?php else: ?>
+    <span class="badge bg-danger">Inactive</span>
+  <?php endif; ?>
+</td>
 
+                                <td><?= $row->created_date ?></td>
                                 <!--<td></td>-->
                                 <td>
                                     <div class="table-actions d-flex align-items-center gap-3 fs-6">
-                                        <a href="<?php echo base_url(); ?>Admin/viewnotice/<?= $row->id; ?>" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Views"><i class="bi bi-eye-fill"></i></a>
+                                        <a href="javascript:void(0);" class="text-primary" data-bs-toggle="modal" data-bs-target="#viewNoticeModal" onclick='viewNotice(<?= htmlspecialchars(json_encode($row), ENT_QUOTES, "UTF-8") ?>)' title="View">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+
                                         <?php
                                         if ($_SESSION['type'] == 'SuperAdmin') {
                                         ?>
@@ -58,6 +68,7 @@
                                         <?php } ?>
                                     </div>
                                 </td>
+
                             </tr>
                         <?php $i++;
                         } ?>
@@ -76,6 +87,43 @@
             </div>
         </div>
     </div>
+    <!-- Modal Code  -->
+    <!-- Modal -->
+    <div class="modal fade" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewNoticeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewNoticeModalLabel">Notice Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Regarding</th>
+                            <td id="modal_regarding"></td>
+                        </tr>
+                        <tr>
+                            <th>Notice</th>
+                            <td id="modal_notice"></td>
+                        </tr>
+                        <tr>
+                            <th>Issued By</th>
+                            <td id="modal_added_by"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="modal_status"></td>
+                        </tr>
+                        <tr>
+                            <th>Updated Date</th>
+                            <td id="modal_created_date"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Code End -->
 </main>
 
 <script>
@@ -109,6 +157,15 @@
             window.location.href = '<?php echo base_url(); ?>Admin/noticedelete/' + id;
 
         }
+    }
+</script>
+<script>
+    function viewNotice(row) {
+        document.getElementById('modal_regarding').innerText = row.regarding;
+        document.getElementById('modal_notice').innerText = row.notice;
+        document.getElementById('modal_added_by').innerText = row.added_by;
+        document.getElementById('modal_status').innerText = row.status == 1 ? 'Active' : 'Inactive';
+        document.getElementById('modal_created_date').innerText = row.created_date;
     }
 </script>
 <!--end page main-->

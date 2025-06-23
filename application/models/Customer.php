@@ -117,22 +117,70 @@ class Customer extends CI_Model {
 
     }
     
+public function get_latest_leads($limit = 7, $start = 0)
+{
+    $query = $this->db
+        ->select('leads.*, admin.name as agent_name')
+        ->from('leads')
+        ->join('admin', 'admin.id = leads.agent_id', 'left')
+        ->order_by('leads.id', 'DESC') // Or use 'created_at' if preferred
+        ->limit($limit, $start)
+        ->get();
+
+    return $query->result();
+}
+
     
     
-    
- public function getcountall(){
-        $result['agent'] = $this->db->where('type', 'Agent')->where('manager_id',$this->session->userdata('id'))->count_all_results('admin');
-        $result['allagent'] = $this->db->where('type', 'Agent')->count_all_results('admin');
-        $result['manager'] = $this->db->where('type', 'Manager')->count_all_results('admin');
-        $result['agent_lead'] = $this->db->where('agent_id', $this->session->userdata('id'))->count_all_results('leads');
-        $result['manager_lead'] = $this->db->where('manager_id', $this->session->userdata('id'))->count_all_results('leads');
-        $result['total_leads'] = $this->db->count_all_results('leads');
-     $result['loan'] = $this->db->select("COUNT(*)as tot, 
-      COUNT(case when customerLoan.status='3' then 1 end) as approved,
-      COUNT(case when customerLoan.status='1' then 1 end) as notapproved 
-      from customerLoan")->get()->result();
-      return $result;
-    }
+ public function getcountall() {
+    $result['agent'] = $this->db->where('type', 'Agent')
+                                ->where('manager_id', $this->session->userdata('id'))
+                                ->count_all_results('admin');
+
+    $result['allagent'] = $this->db->where('type', 'Agent')
+                                   ->count_all_results('admin');
+
+    $result['manager'] = $this->db->where('type', 'Manager')
+                                  ->count_all_results('admin');
+
+    $result['agent_lead'] = $this->db->where('agent_id', $this->session->userdata('id'))
+                                     ->count_all_results('leads');
+
+    $result['manager_lead'] = $this->db->where('manager_id', $this->session->userdata('id'))
+                                       ->count_all_results('leads');
+
+    $result['total_leads'] = $this->db->count_all_results('leads');
+
+    // Loan count summary
+    $query = $this->db->query("
+        SELECT 
+            COUNT(*) AS total_loans,
+            COUNT(CASE WHEN customerLoan.status = '1' THEN 1 END) AS notapproved,
+            COUNT(CASE WHEN customerLoan.status = '2' THEN 1 END) AS inprocess,
+            COUNT(CASE WHEN customerLoan.status = '3' THEN 1 END) AS approved,
+            COUNT(CASE WHEN customerLoan.status = '4' THEN 1 END) AS settled,
+            COUNT(CASE WHEN customerLoan.status IS NULL THEN 1 END) AS noaction
+        FROM customerLoan
+    ");
+    $result['loan'] = $query->result();
+
+    // For Leads Calculation 
+    // Loan count summary
+    $leads = $this->db->query("
+        SELECT 
+            COUNT(*) AS total_leads,
+            COUNT(CASE WHEN leads.status = '1' THEN 1 END) AS notapproved,
+            COUNT(CASE WHEN leads.status = '2' THEN 1 END) AS inprocess,
+            COUNT(CASE WHEN leads.status = '3' THEN 1 END) AS approved,
+            COUNT(CASE WHEN leads.status = '4' THEN 1 END) AS settled,
+            COUNT(CASE WHEN leads.status IS NULL THEN 1 END) AS noaction
+        FROM leads
+    ");
+    $result['leads'] = $leads->result();
+
+    return $result;
+}
+
     public function getbwfiletrdata($form,$to,$type,$status,$agent){
       //  print_r($type);die;
          $this->db->select('id,status,application_no,CONCAT(title," ",first_name," " ,mid_name," ", surname) as fullname,loan_type,agent_name,mobile,email,street_address,create_at');

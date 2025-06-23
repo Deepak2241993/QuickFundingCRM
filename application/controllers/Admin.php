@@ -67,19 +67,43 @@ class Admin extends CI_Controller
 		redirect(base_url() . 'Admin');
 	}
 	public function dashboard()
-	{
-		if ($this->session->userdata('login')) {
-			$data['getcount'] = $this->Customer->getcountall();
-			// print_r($data['getcount']); die();
+{
+	if ($this->session->userdata('login')) {
+		$data['getcount'] = $this->Customer->getcountall();
+		$data['latest_leads'] = $this->Customer->get_latest_leads(7); 
+		// print_r($data['getcount']);die();
+		// Calculate loan percentages
+		$loan = $data['getcount']['loan'][0];
+		$total = $loan->total_loans ?: 1;
 
-			$this->load->view('admin/layout/header');
-			$this->load->view('admin/layout/sidebar');
-			$this->load->view('admin/dashboard', $data);
-			$this->load->view('admin/layout/footer');
-		} else {
-			redirect(base_url() . 'Admin');
-		}
+		$data['loan_percent'] = [
+			'Approved'     => round(($loan->approved / $total) * 100, 2),
+			'Not Approved' => round(($loan->notapproved / $total) * 100, 2),
+			'In Process'   => round(($loan->inprocess / $total) * 100, 2),
+			'Settled'      => round(($loan->settled / $total) * 100, 2),
+			'No Action'    => round(($loan->noaction / $total) * 100, 2)
+		];
+
+		// Lead Percentage
+		$leads = $data['getcount']['leads'][0];
+		$totalLeads = $leads->total_leads ?: 1;
+
+		$data['lead_percent'] = [
+			'Approved'     => round(($leads->approved / $totalLeads) * 100, 2),
+			'Not Approved' => round(($leads->notapproved / $totalLeads) * 100, 2),
+			'In Process'   => round(($leads->inprocess / $totalLeads) * 100, 2),
+			'Settled'      => round(($leads->settled / $totalLeads) * 100, 2),
+			'No Action'    => round(($leads->noaction / $totalLeads) * 100, 2),
+		];
+		$this->load->view('admin/layout/header');
+		$this->load->view('admin/layout/sidebar');
+		$this->load->view('admin/dashboard', $data);
+		$this->load->view('admin/layout/footer');
+	} else {
+		redirect(base_url() . 'Admin');
 	}
+}
+
 	public function loanform()
 	{
 		if ($this->session->userdata('login')) {

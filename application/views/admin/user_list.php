@@ -16,7 +16,7 @@
 					</div>
 					<div class="ms-auto">
 						<div class="btn-group">
-						<a href="<?php echo base_url();?>Admin/add_user"><button type="button" class="btn btn-primary">Add User</button></a>
+						<a href="<?php echo base_url();?>Admin/add_user"><button type="button" class="btn btn-primary">Add Agent/Manager</button></a>
 						
 						</div>
 					</div>
@@ -26,6 +26,18 @@
 				<h6 class="mb-0 text-uppercase">User Data Import</h6>
 				<hr/>
 				<div class="card">
+						<?php if ($this->session->flashdata('success')): ?>
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+						<?= $this->session->flashdata('success') ?>
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		<?php endif; ?>
+		<?php if ($this->session->flashdata('error')): ?>
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<?= $this->session->flashdata('error') ?>
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		<?php endif; ?>
 					<div class="card-body">
 
 

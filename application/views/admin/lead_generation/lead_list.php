@@ -19,13 +19,13 @@
 <main class="page-content">
 	<!--breadcrumb-->
 	<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-		<div class="breadcrumb-title pe-3">User List</div>
+		<div class="breadcrumb-title pe-3">Leads List</div>
 		<div class="ps-3">
 			<nav aria-label="breadcrumb">
 				<ol class="breadcrumb mb-0 p-0">
 					<li class="breadcrumb-item"><a href="javascript:;"><i class="bx bx-home-alt"></i></a>
 					</li>
-					<li class="breadcrumb-item active" aria-current="page">View All User</li>
+					<li class="breadcrumb-item active" aria-current="page">View All Leads</li>
 				</ol>
 			</nav>
 			</nav>
@@ -39,7 +39,8 @@
 	</div>
 	<!--end breadcrumb-->
 
-	<h6 class="mb-0 text-uppercase">User Data Import</h6>
+	<h6 class="mb-0 text-uppercase">Search Data</h6>
+	<input type="text" name="search" id="search" placeholder="User Name, Email, Phone" class="form-control mb-3" onkeyup="searchleads()" style="width: 300px; display: inline-block;">
 	<?php if ($this->session->flashdata('success')) {
 		echo '<div class="alert alert-success">' . $this->session->flashdata('success') . '</div>';
 	}
@@ -69,10 +70,14 @@
 							<th>Action</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody id="ajaxtable">
 						<?php
 							$i = isset($current_page) && $current_page > 1 ? (($current_page - 1) * $per_page + 1) : 1;
-							foreach ($leads as $row) {
+								foreach ($leads as $row) {
+								// Check if logged in user is an Agent and this row does not belong to them
+								if ($this->session->userdata('type') == 'Agent' && $row->agent_name != $this->session->userdata('name')) {
+									continue; // Skip this row
+								}
 							?>
 							<tr>
 								<td> <?= $i ?></td>
@@ -193,16 +198,15 @@
 
 
 
-	function filtertable() {
-		var from = $('#datepicker_from').val();
-		var to = $('#datepicker_to').val();
-		if (from != '' && to != '') {
+	function searchleads() {
+		var input = $('#search').val();
+		if (input != '') {
 			$.ajax({
-				url: '<?php echo base_url(); ?>Admin/filtertable',
+				url: '<?php echo base_url(); ?>Admin/searchLeads',
 				type: 'POST',
 				data: {
-					from: from,
-					to: to
+					search: input
+					
 				},
 				error: function() {
 					alert('Something is wrong');

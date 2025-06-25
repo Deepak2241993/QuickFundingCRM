@@ -413,10 +413,17 @@ public function get_lead_by_id($id){
     
 
 // Count total leads
-public function get_total_leads()
+public function get_total_leads($agent_id)
 {
-    return (int) $this->db->count_all('leads');
+    if ($agent_id != 1) {
+        return (int) $this->db
+            ->where('agent_id', $agent_id)
+            ->count_all_results('leads');
+    } else {
+        return (int) $this->db->count_all('leads');
+    }
 }
+
 
 // Fetch paginated leads with agent name
 public function get_paginated_leads($limit, $start)
@@ -434,7 +441,29 @@ public function get_paginated_leads($limit, $start)
         ->result();
 }
 
+public function LeadSearch($search = '') {
+    $this->db->select('leads.*, admin.name as agent_name');
+    $this->db->from('leads');
+    $this->db->join('admin', 'admin.id = leads.agent_id', 'left');
 
+    // Apply search filter
+    if (!empty($search)) {
+        $this->db->group_start();
+        $this->db->like('leads.name', $search);
+        $this->db->or_like('leads.email', $search);
+        $this->db->or_like('leads.phone', $search);
+        $this->db->group_end();
+    }
+
+    // Restrict to agent's own leads
+    if ($this->session->userdata('type') == 'Agent') {
+        $this->db->where('leads.agent_id', $this->session->userdata('id'));
+    }
+
+    $this->db->order_by('leads.id', 'DESC');
+
+    return $this->db->get()->result();
+}
 
 
   

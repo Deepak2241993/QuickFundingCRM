@@ -119,16 +119,16 @@ class Admin extends CI_Controller
 
 
 	public function allLead()
-{
+	{
     if (!$this->session->userdata('login')) {
         redirect(base_url('Admin'));
     }
 
     $this->load->library('pagination');
-
+	$agent_id = $this->session->userdata('id');
     // === Pagination config ===
     $config['base_url'] = base_url('Admin/allLead');
-    $config['total_rows'] = $this->Customer->get_total_leads();
+    $config['total_rows'] = $this->Customer->get_total_leads($agent_id);
     $config['per_page'] = 20;
     $config['uri_segment'] = 3;
     $config['use_page_numbers'] = true;
@@ -175,7 +175,6 @@ if ($this->uri->segment(3)) {
     $this->load->view('admin/lead_generation/lead_list', $data);
     $this->load->view('admin/layout/footer');
 }
-
 
 
 
@@ -1246,9 +1245,11 @@ if ($this->uri->segment(3)) {
 			if ($this->input->post('new_pass')) {
 				$password = md5($this->input->post('new_pass'));
 			} else {
-				$password = md5($this->input->post('old_pass'));
+				$password = $this->input->post('old_pass');
 			}
-			$agentArray = array(
+			if($this->session->userdata('type') == 'SuperAdmin' || $this->session->userdata('type') == 'Manager')
+			{
+				$agentArray = array(
 				'name' => $this->input->post('name'),
 				'email' => $this->input->post('email'),
 				'type' => $this->input->post('type'),
@@ -1257,12 +1258,31 @@ if ($this->uri->segment(3)) {
 				'status' => $this->input->post('status'),
 				'password' => $password
 			);
+			}
+			else{
+				$agentArray = array(
+				'name' => $this->input->post('name'),
+				'email' => $this->input->post('email'),
+				'phone' => $this->input->post('phone'),
+				'password' => $password
+			);
+			}
+			
+			
 
 			$data = $this->Customer->updateUser($agentArray, $id);
+
+			if($this->session->userdata('type') == 'Agent' && $data)
+			{
+				$this->session->set_flashdata('success', 'Data Update Successfully');
+				redirect(base_url() . 'Admin/editUser/' . $id);
+			}
 			if ($data) {
-				$this->session->set_flashdata('success', 'Agent Update successfully');
+				$this->session->set_flashdata('success', 'Data Update successfully');
 				redirect(base_url() . 'Admin/UserList');
-			} else {
+			}
+			
+			else {
 				$this->session->set_flashdata('error', 'Not Update');
 				redirect(base_url() . 'Admin/editUser/' . $id);
 			}
@@ -1341,4 +1361,82 @@ public function updateNotice($id)
 		$this->session->set_flashdata('success', 'Mail is send successfully');
 		return redirect('/Admin/customerList');
 	}
+
+	public function searchLeads()
+{
+    if ($this->session->userdata('login')) {
+        $search = $this->input->post('search');
+        $data = $this->Customer->LeadSearch($search);
+        $output = '';
+        $i = 1;
+
+        if (!empty($data)) {
+            foreach ($data as $row) {
+                // Skip data if agent is logged in but this lead is not assigned to them
+                if ($this->session->userdata('type') == 'Agent' && $row->agent_name != $this->session->userdata('name')) {
+                    continue;
+                }
+
+                $output .= '<tr>
+                    <td>' . $i . '</td>
+                    <td>' . date('d-m-Y', strtotime($row->created_at)) . '</td>
+                    <td>' . $row->agent_name . '</td>
+                    <td>' . $row->name . '</td>
+                    <td>' . $row->email . '</td>
+                    <td>' . $row->phone . '</td>
+                    <td>' . $row->purpose_of_loan . '</td>
+                    <td id="statustd_' . $row->id . '">';
+
+                // Status dropdown logic
+                $selectStyle = "background: #990000bf; color: #FFF;";
+                if ($row->status == 2) $selectStyle = "background: #2d37afbf; color: #FFF;";
+                else if ($row->status == 3) $selectStyle = "background: #009966; color: #FFF;";
+                else if ($row->status == 4) $selectStyle = "background:#f9058ceb; color: #FFF;";
+
+                $canChangeStatus = in_array($this->session->userdata('type'), ['SuperAdmin', 'Manager']) && $row->status != 3;
+
+                $output .= '<select class="form-select mb-3 wide-select" style="' . $selectStyle . '" name="status"'
+                    . ($canChangeStatus ? ' onchange="updatestatus(' . $row->id . ',this)"' : '') . '>';
+
+                if ($canChangeStatus) {
+                    $output .= '
+                        <option value="">Select Status</option>
+                        <option value="1"' . ($row->status == 1 ? ' selected' : '') . '>Not Approved</option>
+                        <option value="2"' . ($row->status == 2 ? ' selected' : '') . '>In progress</option>
+                        <option value="3"' . ($row->status == 3 ? ' selected' : '') . '>Approved</option>
+                        <option value="4"' . ($row->status == 4 ? ' selected' : '') . '>Setteled</option>';
+                } else {
+                    $output .= '
+                        <option value="">No Action</option>
+                        <option value="1"' . ($row->status == 1 ? ' selected' : '') . '>Not Approved</option>
+                        <option value="2"' . ($row->status == 2 ? ' selected' : '') . '>In progress</option>
+                        <option value="3"' . ($row->status == 3 ? ' selected' : '') . '>Approved</option>
+                        <option value="4"' . ($row->status == 4 ? ' selected' : '') . '>Setteled</option>';
+                }
+
+                $output .= '</select></td>';
+
+                // Action buttons
+                $output .= '<td><div class="table-actions d-flex align-items-center gap-3 fs-6">
+                    <a href="' . base_url() . 'Admin/LeadEdit/' . $row->id . '" class="text-warning" data-bs-toggle="tooltip" title="Edit">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>';
+                if ($this->session->userdata('type') == 'SuperAdmin') {
+                    $output .= '<a href="javascript:void(0)" class="text-danger" data-bs-toggle="tooltip" title="Delete" onclick="confirmdelete(' . $row->id . ')">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>';
+                }
+                $output .= '</div></td></tr>';
+
+                $i++;
+            }
+            echo $output;
+        } else {
+            echo '<tr><td colspan="9" class="text-center">No matching data found</td></tr>';
+        }
+    } else {
+        redirect(base_url() . 'Admin');
+    }
+}
+
 }

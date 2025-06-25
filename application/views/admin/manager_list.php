@@ -14,6 +14,12 @@
 							</nav>
 						</nav>
 					</div>
+						<div class="ms-auto">
+						<div class="btn-group">
+						<a href="<?php echo base_url();?>Admin/add_user"><button type="button" class="btn btn-primary">Add Agent/Manager</button></a>
+						
+						</div>
+					</div>
 					
 				</div>
 				<!--end breadcrumb-->

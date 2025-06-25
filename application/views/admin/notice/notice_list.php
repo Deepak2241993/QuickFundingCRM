@@ -43,13 +43,13 @@
                                 <td><?= $row->regarding ?></td>
                                 <td> <?= implode(' ', array_slice(explode(' ', strip_tags($row->notice)), 0, 10)) . '...'; ?></td>
                                 <td><?= $row->added_by ?></td>
-                               <td>
-  <?php if ($row->status == 1): ?>
-    <span class="badge bg-success">Active</span>
-  <?php else: ?>
-    <span class="badge bg-danger">Inactive</span>
-  <?php endif; ?>
-</td>
+                                <td>
+                                    <?php if ($row->status == 1): ?>
+                                        <span class="badge bg-success">Active</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger">Inactive</span>
+                                    <?php endif; ?>
+                                </td>
 
                                 <td><?= $row->created_date ?></td>
                                 <!--<td></td>-->

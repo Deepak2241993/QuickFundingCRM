@@ -17,6 +17,9 @@
 				</ol>
 			</nav>
 		</div>
+		
+
+
 		<!-- <div class="ms-auto">
 						<div class="btn-group">
 							<button type="button" class="btn btn-primary">Settings</button>
@@ -30,6 +33,18 @@
 						</div>
 					</div> -->
 	</div>
+	<?php if ($this->session->flashdata('success')): ?>
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+						<?= $this->session->flashdata('success') ?>
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		<?php endif; ?>
+		<?php if ($this->session->flashdata('error')): ?>
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<?= $this->session->flashdata('error') ?>
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		<?php endif; ?>
 	<!--end breadcrumb-->
 	<form action="<?php echo base_url(); ?>Admin/updateUser/<?= $user->id ?>" method="post" enctype="multipart/form-data">
 
@@ -45,30 +60,30 @@
 								<label class="form-label"> User Name<span class="text-danger">*</span> :</label>
 								<input type="text" name="name" value="<?= $user->name; ?>" class="form-control" required>
 							</div>
-						</div>
-						<div class="row">
+						
+						
 							<div class="col-xl-6 mb-3">
 								<label class="form-label">User Email<span class="text-danger">*</span> :</label>
 								<input type="email" name="email" value="<?= $user->email; ?>" class="form-control" required>
 							</div>
-						</div>
-						<div class="row">
+						
 							<div class="col-xl-6 mb-3">
 								<label class="form-label">User Phone :</label>
 								<input type="phone" name="phone" class="form-control" value="<?= $user->phone; ?>">
 							</div>
-						</div>
+						
 						<?php if ($this->session->userdata('type') == 'Manager') { ?>
-							<div class="row">
+							
 								<div class="col-xl-6 mb-3">
 									<label class="form-label">User Type<span class="text-danger">*</span>:</label>
-									<input type="text" readonly name="type" value="Agent" class="form-control" required>
+									<input type="text" readonly name="type" value="<?= $user->type ?>" class="form-control" required>
 									<input type="hidden" name="manager_id" value="<?= $_SESSION['id'] ?>" class="form-control" required>
 								</div>
-							</div>
+							
 
-						<?php } else { ?>
-							<div class="row">
+						<?php } if ($this->session->userdata('type') == 'SuperAdmin') { ?>
+
+							
 								<div class="col-xl-6 mb-3">
 									<label class="form-label">User Type<span class="text-danger">*</span>:</label>
 									<select class="form-control" name="type" id="userTypeSelect" required>
@@ -77,7 +92,7 @@
 										<option value="Agent" <?= ($user->type == 'Agent') ? 'selected' : '' ?>>Agent</option>
 									</select>
 								</div>
-							</div>
+							
 
 							<!-- Manager selection (conditionally shown if Agent is selected) -->
 							<div class="row" id="selectManagerSection" style="<?= ($user->type == 'Agent') ? '' : 'display:none;' ?>">
@@ -109,24 +124,22 @@
 							</script>
 						<?php } ?>
 
-						<div class="row">
+						
 							<div class="col-xl-6 mb-3">
-								<label class="form-label">Set New Password<span class="text-danger">*</span>:</label>
+								<label class="form-label">Set New Password:</label>
 								<input type="hidden" name="old_pass" class="form-control" value="<?= $user->password ?>">
 								<input type="password" name="new_pass" class="form-control">
 								
 							</div>
-						</div>
-						<div class="row">
+						
 								<div class="col-xl-6 mb-3">
 									<label class="form-label">Active Status<span class="text-danger">*</span>:</label>
 									<select class="form-control" name="status" id="userTypeSelect" required>
-										<option value="">Select User Type</option>
 										<option value="1" <?= ($user->status == 1) ? 'selected' : '' ?>>Active</option>
 										<option value="0" <?= ($user->status == 0) ? 'selected' : '' ?>>Inactive</option>
 									</select>
 								</div>
-							</div>
+						</div>
 						<button class="btn btn-outline-success px-5 rounded-0">Update</button>
 					</div>
 				</div>
